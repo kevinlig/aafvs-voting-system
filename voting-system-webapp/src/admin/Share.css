@@ -1,0 +1,35 @@
+.aafvs-admin__share {
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.aafvs-admin__share-link:link, .aafvs-admin__share-link:visited {
+    color: #00698f;
+}
+.aafvs-admin__share-link:hover, .aafvs-admin__share-link:active {
+    text-decoration: none;
+}
+
+.aafvs-admin__close {
+    margin: 50px 0;
+}
+
+.aafvs-admin__close-instructions {
+    font-size: 14px;
+}
+
+.aafvs-admin__close-button {
+    font-size: 14px;
+    padding: 5px 10px;
+    margin: 10px 0;
+    display: block;
+    appearance: none;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    background-color: #ff635c;
+    border: 3px solid #ff635c;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: background 0.1s ease, border 0.1s ease, color 0.1s ease;
+}

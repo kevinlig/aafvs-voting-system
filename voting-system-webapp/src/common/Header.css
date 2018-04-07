@@ -1,0 +1,48 @@
+.aafvs-header {
+    height: 100px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    padding: 0 30px;
+
+    background-color: #f5f5f5;
+    border-bottom: 10px solid #e0e0e0;
+}
+
+.aavfs-header__icon {
+    flex: 0 1 50px;
+    height: 50px;
+}
+
+.aavfs-header__title {
+    flex: 0 1 auto;
+
+    font-size: 25px;
+    line-height: 1.3;
+    font-weight: 400;
+    text-align: center;
+
+    margin: 0;
+    margin-left: 10px;
+    padding: 0;
+}
+
+.aavfs-header__title-top {
+    display: block;
+    font-weight: 600;
+}
+
+.aavfs-header__title-separator {
+    display: block;
+    width: 250px;
+    margin: 0 auto;
+    border-bottom: 1px solid black;
+}
+
+.aavfs-header__title-bottom {
+    display: block;
+    text-transform: uppercase;
+    font-size: 18px;
+    letter-spacing: 4px;
+}

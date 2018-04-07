@@ -1,0 +1,43 @@
+.aafvs-ballot {
+    padding: 20px 0;
+}
+
+.aafvs-ballot__list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+
+    border: 2px solid gray;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+@media screen and (min-width: 600px) {
+    .aafvs-ballot__list {
+        width: 75%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+
+
+.aafvs-ballot__list-item {
+    flex: 1 1 auto;
+    padding: 10px 20px;
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    cursor: grab;
+
+    font-size: 14px;
+}
+
+.aafvs-ballot__list-item_moving {
+    opacity: 0.5;
+    background-color: #e0e0e0;
+    border: 1px solid #e0e0e0;
+    cursor: grabbing;
+}

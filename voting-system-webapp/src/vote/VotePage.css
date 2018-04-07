@@ -1,0 +1,21 @@
+.aafvs-vote__title {
+    font-size: 18px;
+    line-height: 1.3;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 10px;
+
+    border-bottom: 5px solid #61daff;
+}
+
+.aafvs-vote__instructions {
+    font-size: 14px;
+}
+
+.aafvs-vote__instructions .aafvs-vote__instructions_underline {
+    text-decoration: underline;
+}
+
+.aafvs-vote__ballot {
+    margin: 20px auto;
+}
