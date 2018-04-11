@@ -170,15 +170,37 @@ function calculateMatrixStrength(matrix, candidates) {
     }, {});
 }
 
+function traverseIndirectComparisons(ranks, currentKey, sum, visited = []) {
+    const current = ranks[currentKey];
+    if (current.indirect.length === 0) {
+        return sum;
+    }
+
+    return current.indirect.reduce((sum, indirect) => {
+        // check if we've already visited this item
+        if (visited.indexOf(indirect) > -1) {
+            // don't keep recursing down to avoid a loop
+            return sum;
+        }
+
+        const nextItem = ranks[indirect];
+        if (!nextItem) {
+            // next item doesn't exist in our ranks (most likely it received no votes)
+            return sum;
+        }
+        return traverseIndirectComparisons(ranks, indirect, sum + nextItem.direct, visited.concat([indirect]));
+    }, sum);
+}
+
 function calculateRanking(strength) {
     // iterate through each pairing
     const ranks = Object.values(strength).reduce((output, item) => {
          // get the sum of the strengths for each direct comparison
-        let updatedSum = item.strength;
+        let updatedSum = 0;
         let indirectNodes = [];
         if (output[item.from]) {
             // we've actually already seen this item before, so update the sum and indirect nodes
-            updatedSum = output[item.from].direct + item.strength;
+            updatedSum = output[item.from].direct;
             const currentIndirect = output[item.from]['indirect'];
             indirectNodes = Array.from(currentIndirect);
         }
@@ -189,16 +211,31 @@ function calculateRanking(strength) {
         const opposite = strength[`${item.to}>${item.from}`];
         if (!opposite || opposite.strength < item.strength) {
             indirectNodes.push(item.to);
+            updatedSum += item.strength;
         }        
 
         return Object.assign({}, output, {
             [item.from]: {
+                item: item.from,
                 direct: updatedSum,
                 indirect: indirectNodes
             }
         });
     }, {});
-    return ranks;
+
+    // now that we have the base direct comparison strengths for each ballot item, we can get the indirect
+    // comparison strengths by traversing the indirect array through to either a cycle or end and summing
+    // the direct strengths of each node we pass through
+    Object.values(ranks).forEach((item) => {
+        item.total = item.direct + traverseIndirectComparisons(ranks, item.item, 0, [item.item]);
+    });
+
+    // finally, order the results
+    const output = Object.values(ranks).map((rank) => ({
+        candidate: rank.item,
+        value: rank.total
+    }));
+    return output.sort((rank1, rank2) => rank1.value - rank2.value).reverse();
 }
 
 function runSchulze(rawCandidates, ballots, winCount) {
@@ -225,6 +262,16 @@ function runSchulze(rawCandidates, ballots, winCount) {
 
 // const candidates = [0, 1, 2, 3];
 
+const ballots = {
+    a: [1, 3, 2, 0],
+    b: [2, 1, 3, 0],
+    c: [0, 2, 1, 3],
+    d: [0, 1, 2, 3],
+    e: [1, 0, 2, 3]
+};
+
+const candidates = [0, 1, 2, 3];
+
 // const ballots = {
 //     a: [3, 5, 1, 0, 4, 6, 7, 2],
 //     b: [1, 7, 0, 3, 6, 5, 4, 2],
@@ -237,17 +284,17 @@ function runSchulze(rawCandidates, ballots, winCount) {
 
 // const candidates = [0, 1, 2, 3, 4, 5, 6, 7];
 
-const ballots = {
-    a: [3, 5, 1, 0, 4, 2],
-    b: [1, 0, 3, 5, 4, 2],
-    c: [2, 1, 3, 5, 4, 0],
-    d: [0, 5, 3, 4, 2, 1],
-    e: [2, 4, 3, 0, 1, 5],
-    f: [3, 5, 1, 0, 2, 4],
-    g: [4, 0, 2, 1, 5, 3]
-};
+// const ballots = {
+//     a: [3, 5, 1, 0, 4, 2],
+//     b: [1, 0, 3, 5, 4, 2],
+//     c: [2, 1, 3, 5, 4, 0],
+//     d: [0, 5, 3, 4, 2, 1],
+//     e: [2, 4, 3, 0, 1, 5],
+//     f: [3, 5, 1, 0, 2, 4],
+//     g: [4, 0, 2, 1, 5, 3]
+// };
 
-const candidates = [0, 1, 2, 3, 4, 5];
+// const candidates = [0, 1, 2, 3, 4, 5];
 
 const results = runSchulze(candidates, ballots, 3);
 console.log(results);
