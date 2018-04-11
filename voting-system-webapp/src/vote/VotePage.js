@@ -21,7 +21,7 @@ export default class VotePage extends React.Component {
                         {itemCount} will be selected using a preferential voting scheme. You should arrange <span className="aafvs-vote__instructions_underline">every</span> box to reflect your full set of choices.
                     </p>
                     <p className="aafvs-vote__instructions">
-                        Click the Submit button to submit your vote.
+                        Click the Cast Vote button to submit your vote.
                     </p>
                 </div>
                 <div className="aafvs-vote__ballot">
@@ -31,6 +31,12 @@ export default class VotePage extends React.Component {
                         ballotOrder={this.props.ballotOrder}
                         moveItemToPos={this.props.moveItemToPos} />
                 </div>
+                <button
+                    className="aafvs-vote__submit aafvs__button"
+                    onClick={this.props.castVote}
+                    disabled={this.props.inFlight}>
+                    Cast Vote
+                </button>
             </div>
         );
     }

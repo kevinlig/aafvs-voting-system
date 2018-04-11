@@ -8,30 +8,33 @@ import { actions as voteActions } from '../redux/actions/voteActions';
 
 import AdminNotFound from '../admin/AdminNotFound';
 import VotePage from './VotePage';
+import VoteClosed from './VoteClosed';
 
 class VoteContainer extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            inFlight: false
+            loadingElection: false,
+            submittingVote: false
         };
 
         this.moveItemToPos = this.moveItemToPos.bind(this);
+        this.castVote = this.castVote.bind(this);
     }
     componentDidMount() {
         this.loadElection(this.props.match.params.election);
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.match.params.election !== this.props.match.params.election) {
+        if (prevProps.match.params.election.id !== this.props.match.params.election.id) {
             this.loadElection(this.props.match.params.election);
         }
     }
 
     loadElection(id) {
         this.setState({
-            inFlight: true
+            loadingElection: true
         });
 
         Axios.request({
@@ -41,7 +44,8 @@ class VoteContainer extends React.Component {
         .then((res) => {
             this.parseElection(res.data);
             this.setState({
-                inFlight: false
+                loadingElection: false,
+                voted: true
             });
         })
         .catch((err) => {
@@ -50,7 +54,7 @@ class VoteContainer extends React.Component {
             }
             console.log(err);
             this.setState({
-                inFlight: false
+                loadingElection: false
             });
         });
     }
@@ -77,8 +81,38 @@ class VoteContainer extends React.Component {
         this.props.setBallotOrder(updatedOrder);
     }
 
+    castVote() {
+        this.setState({
+            submittingVote: true
+        });
+
+        Axios.request({
+            url: `/election/${this.props.election.id}/vote`,
+            method: 'post',
+            data: {
+                ballot: this.props.ballotOrder
+            }
+        })
+        .then((res) => {
+            this.setState({
+                submittingVote: false
+            }, () => {
+                this.props.setVoterStatus(res.data.voterId);
+            });
+        })
+        .catch((err) => {
+            if (err.response) {
+
+            }
+            console.log(err);
+            this.setState({
+                submittingVote: false
+            });
+        })
+    }
+
     render() {
-        if (this.state.inFlight) {
+        if (this.state.loadingElection) {
             return 'Loading...';
         }
         if (!this.props.election.id) {
@@ -86,10 +120,22 @@ class VoteContainer extends React.Component {
                 <AdminNotFound />
             );
         }
+        else if (!this.props.election.active) {
+            // voting is closed
+            return (
+                <VoteClosed
+                    title={this.props.election.title} />
+            );
+        }
+        else if (this.props.voterStatus.submitted) {
+            return `Voted! You are ${this.props.voterStatus.id.substring(this.props.voterStatus.id.length - 5)}`;
+        }
         return (
             <VotePage
                 {...this.props}
-                moveItemToPos={this.moveItemToPos} />
+                moveItemToPos={this.moveItemToPos}
+                castVote={this.castVote}
+                inFlight={this.state.submittingVote} />
         );
     }
 }
@@ -97,7 +143,8 @@ class VoteContainer extends React.Component {
 export default connect(
     (state) => ({
         election: state.election,
-        ballotOrder: state.ballotOrder
+        ballotOrder: state.ballotOrder,
+        voterStatus: state.voterStatus
     }),
     (dispatch) => bindActionCreators(voteActions, dispatch)
 )(VoteContainer);

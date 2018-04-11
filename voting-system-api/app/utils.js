@@ -35,6 +35,17 @@ module.exports = {
             }
         }
     },
+    error(status, message) {
+        return {
+            statusCode: status,
+            body: JSON.stringify(message),
+            headers: {
+                'Content-Type': 'text/plain',
+                "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+                "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+            }
+        }
+    },
     generateId() {
         return uuid().replace(/-/g, '');
     },

@@ -2,7 +2,7 @@ const utils = require('./utils.js');
 
 const showSession = (id, callback) => {
     
-    // write the item to the table
+    // read the item from the table
     utils.readSessionData(id)
         .then((data) => {
             if (data.length > 0) {

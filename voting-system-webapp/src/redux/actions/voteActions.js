@@ -1,6 +1,7 @@
 export const types = {
     setElection: 'VOTE_SET_ELECTION',
-    setBallotOrder: 'VOTE_SET_BALLOT_ORDER'
+    setBallotOrder: 'VOTE_SET_BALLOT_ORDER',
+    setVoterStatus: 'VOTE_SET_VOTER_STATUS'
 };
 
 export const actions = {
@@ -20,6 +21,12 @@ export const actions = {
         return {
             type: types.setBallotOrder,
             order: order
+        };
+    },
+    setVoterStatus(id) {
+        return {
+            type: types.setVoterStatus,
+            id: id
         };
     }
 };
