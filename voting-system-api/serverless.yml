@@ -39,10 +39,6 @@ functions:
           method: post
           cors: true
       - http:
-          path: election/{electionId}/results
-          method: get
-          cors: true
-      - http:
           path: election/{electionId}/vote
           method: post
           cors: true

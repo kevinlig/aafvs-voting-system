@@ -34,7 +34,10 @@ function findLowest(counts, rvh) {
     const lowestCount = Math.min(...Object.values(counts));
     const lowestCandidates = Object.keys(counts).filter((candidate) => counts[candidate] === lowestCount);
     if (lowestCandidates.length ===  1) {
-        return lowestCandidates[0];
+        return {
+            candidate: lowestCandidates[0],
+            usedRVH: false
+        };
     }
 
     // there's a tie, break it using RVH
@@ -44,7 +47,10 @@ function findLowest(counts, rvh) {
     for (const preference of rvhBallot) {
         if (lowestCandidates.indexOf(preference.candidate) > -1) {
             // we found one, use it
-            return preference.candidate;
+            return {
+                candidate: preference.candidate,
+                usedRVH: true
+            };
         }
     }
 }
@@ -59,7 +65,13 @@ function transferVote(ballot, target, portion = 1) {
             continue;
         }
 
-        // otherwise, this is the candidate, so move its votes to the previous (more preferred) candidate
+        // this is the candidate we are transferring from
+        if (i + 1 >= ballot.length) {
+            // this is the bottom candidate (the least perferred candidate)
+            // do nothing with this candidate (its votes just disappear)
+            continue;
+        }
+        // move its votes to the previous (more preferred) candidate
         if (i > 0) {
             const prevCandidate = updatedBallot[updatedBallot.length - 1];
             prevCandidate.vote += preference.vote * portion;
@@ -80,7 +92,8 @@ function transferVote(ballot, target, portion = 1) {
 
 function eliminateLowest(ballots, rvh, counts) {
     // first determine the lowest candidate
-    const lowestCandidate = findLowest(counts, rvh);
+    const lowestOp = findLowest(counts, rvh);
+    const lowestCandidate = lowestOp.candidate;
     
     // eliminate the candidate from all the ballots
     const updatedBallots = ballots.map((ballot) => (
@@ -94,7 +107,9 @@ function eliminateLowest(ballots, rvh, counts) {
     
     return {
         ballots: updatedBallots,
-        rvh: updatedRVH   
+        rvh: updatedRVH,
+        eliminated: lowestCandidate,
+        usedRVH: lowestOp.usedRVH
     };
 }
 
@@ -102,7 +117,7 @@ function removeWinner(winner, ballots, rvh, quota, counts) {
     // determine the surplus over the quota
     const winningCount = counts[winner];
     const transferRatio = (winningCount - quota) / winningCount;
-    
+
     // transfer the candidate's votes in all the ballots
     const updatedBallots = ballots.map((ballot) => (
         transferVote(ballot, winner, transferRatio)
@@ -114,15 +129,19 @@ function removeWinner(winner, ballots, rvh, quota, counts) {
     });
     
     return {
+        transferRatio,
         ballots: updatedBallots,
-        rvh: updatedRVH   
+        rvh: updatedRVH
     };
 }
 
 function countVotes(ballots, quota, rvh, remaining = 0) {
     if (remaining <= 0) {
         // no more cycles to run
-        return [];
+        return {
+            winners: [],
+            audit: []
+        };
     }
 
     // get everyone's top choice
@@ -143,24 +162,57 @@ function countVotes(ballots, quota, rvh, remaining = 0) {
 
     // now determine the winners
     const winners = Object.keys(candidateCounts).filter((candidate) => candidateCounts[candidate] >= quota);
-    console.log(candidateCounts);
+
     if (winners.length === 0) {
         // no one got the win quota, remove the lowest top ranked candidate and try again
         const updatedElection = eliminateLowest(ballots, rvh, candidateCounts);
 
         // redo the count using the updated ballots
-        return countVotes(updatedElection.ballots, quota, updatedElection.rvh, remaining);
+        const nextRound = countVotes(updatedElection.ballots, quota, updatedElection.rvh, remaining);
+        return {
+            winners: nextRound.winners,
+            audit: [
+                {
+                    event: 'transferEliminate',
+                    counts: Object.assign({}, candidateCounts),
+                    winners: [],
+                    eliminated: [updatedElection.eliminated],
+                    transfer: {},
+                    usedRVH: updatedElection.usedRVH
+                }
+            ].concat(nextRound.audit)
+        }
     }
 
     const unfilledSeats = remaining - winners.length;
     if (unfilledSeats === 0) {
         // we are done
-        return winners;
+        return {
+            winners,
+            audit: [{
+                event: 'transferWin',
+                counts: Object.assign({}, candidateCounts),
+                winners: Array.from(winners),
+                eliminated: [],
+                transfer: {},
+                usedRVH: false
+            }]
+        };
     }
     else if (unfilledSeats < 0) {
         // something went wrong and we picked too many (most likely due to ties)
         // just slice to the difference
-        return winners.slice(0, remaining);
+        return {
+            winners: winners.slice(0, remaining),
+            audit: [{
+                event: 'transferWin',
+                counts: Object.assign({}, candidateCounts),
+                winners: winners.slice(0, remaining),
+                eliminated: [],
+                transfer: {},
+                usedRVH: false
+            }]
+        }
     }
 
     
@@ -171,13 +223,28 @@ function countVotes(ballots, quota, rvh, remaining = 0) {
         ballots,
         rvh
     };
+
+    const auditRatios = {};
     
     winners.forEach((winner) => {
         updatedElection = removeWinner(winner, updatedElection.ballots, updatedElection.rvh, quota, candidateCounts);
+        auditRatios[winner] = updatedElection.transferRatio;
     });
 
     const remainingWinners = countVotes(updatedElection.ballots, quota, updatedElection.rvh, unfilledSeats);
-    return Array.from(winners).concat(remainingWinners);
+    return {
+        winners: Array.from(winners).concat(remainingWinners.winners),
+        audit: [
+            {
+                event: 'transferWin',
+                counts: Object.assign({}, candidateCounts),
+                winners: Array.from(winners),
+                eliminated: [],
+                transfer: auditRatios,
+                usedRVH: false
+            }
+        ].concat(remainingWinners.audit)
+    };
 }
 
 function runSTV(rawCandidates, rawBallots, count) {
@@ -190,55 +257,14 @@ function runSTV(rawCandidates, rawBallots, count) {
     const rvh = selectRVH(rawBallots);
 
     // determine the win quota
-    const winCount = Math.min(count, candidates.length);
+    const winCount = Math.min(count, candidates.length - 1);
     const quota = winQuota(ballots, winCount);
-    console.log(quota);
 
     // count the votes
     const results = countVotes(ballots, quota, rvh, winCount);
+    results.rvh = rvh;
+    results.quota = quota;
     return results;
 };
 
-// const ballots = {
-//     a: [2, 1, 3, 0],
-//     b: [2, 1, 3, 0],
-//     c: [2, 0, 1, 3],
-//     d: [3, 1, 2, 0]
-// };
-
-// const candidates = [0, 1, 2, 3];
-
-// const ballots = {
-//     a: [1, 3, 2, 0],
-//     b: [2, 1, 3, 0],
-//     c: [0, 2, 1, 3],
-//     d: [0, 1, 2, 3],
-//     e: [1, 0, 2, 3]
-// };
-// const candidates = [0, 1, 2, 3];
-
-// const ballots = {
-//     a: [3, 5, 1, 0, 4, 6, 7, 2],
-//     b: [1, 7, 0, 3, 6, 5, 4, 2],
-//     c: [2, 7, 1, 6, 3, 5, 4, 0],
-//     d: [0, 5, 3, 4, 7, 2, 1, 6],
-//     e: [2, 6, 4, 3, 7, 0, 1, 5],
-//     f: [3, 5, 1, 7, 0, 6, 2, 4],
-//     g: [4, 0, 6, 2, 7, 1, 5, 3]
-// };
-// const candidates = [0, 1, 2, 3, 4, 5, 6, 7];
-
-const ballots = {
-    a: [3, 5, 1, 0, 4, 2],
-    b: [1, 0, 3, 5, 4, 2],
-    c: [2, 1, 3, 5, 4, 0],
-    d: [0, 5, 3, 4, 2, 1],
-    e: [2, 4, 3, 0, 1, 5],
-    f: [3, 5, 1, 0, 2, 4],
-    g: [4, 0, 2, 1, 5, 3]
-};
-
-const candidates = [0, 1, 2, 3, 4, 5];
-
-const results = runSTV(candidates, ballots, 3);
-console.log(results);
+module.exports = runSTV;

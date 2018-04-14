@@ -8,3 +8,5 @@ jspm_packages
 # config
 config.json
 event.json
+
+app/count/testcases.js
