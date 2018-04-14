@@ -235,66 +235,38 @@ function calculateRanking(strength) {
         candidate: rank.item,
         value: rank.total
     }));
-    return output.sort((rank1, rank2) => rank1.value - rank2.value).reverse();
+
+    // TODO: fix this to resolve ties
+    return output.sort((rank1, rank2) => rank1.value - rank2.value).reverse()
 }
 
 function runSchulze(rawCandidates, ballots, winCount) {
     // convert the candidate list to string values
     const candidates = rawCandidates.map((candidate) => String(candidate));
-
     const election = prepareBallots(ballots);
+    const audit = {};
+
     const pairs = generatePairs(candidates);
 
     // calculate pairwise matrix
     const matrix = calculatePairMatrix(pairs, election.votes);
+    audit.pairwise = Object.values(matrix);
     
     // determine the strongest paths between every matrix point
     const strengthMatrix = calculateMatrixStrength(matrix, candidates);
-    return calculateRanking(strengthMatrix);
+    audit.strongestPaths = Object.values(strengthMatrix);
+
+    const ranking = calculateRanking(strengthMatrix);
+    audit.ranking = ranking;
+
+    let winners = ranking;
+    if (ranking.length > winCount) {
+        winners = ranking.slice(0, winCount);
+    }
+    return {
+        winners: winners.map((item) => item.candidate),
+        audit: audit
+    };
 };
 
-// const ballots = {
-//     a: [2, 1, 3, 0],
-//     b: [2, 1, 3, 0],
-//     c: [2, 0, 1, 3],
-//     d: [3, 1, 2, 0]
-// };
-
-// const candidates = [0, 1, 2, 3];
-
-const ballots = {
-    a: [1, 3, 2, 0],
-    b: [2, 1, 3, 0],
-    c: [0, 2, 1, 3],
-    d: [0, 1, 2, 3],
-    e: [1, 0, 2, 3]
-};
-
-const candidates = [0, 1, 2, 3];
-
-// const ballots = {
-//     a: [3, 5, 1, 0, 4, 6, 7, 2],
-//     b: [1, 7, 0, 3, 6, 5, 4, 2],
-//     c: [2, 7, 1, 6, 3, 5, 4, 0],
-//     d: [0, 5, 3, 4, 7, 2, 1, 6],
-//     e: [2, 6, 4, 3, 7, 0, 1, 5],
-//     f: [3, 5, 1, 7, 0, 6, 2, 4],
-//     g: [4, 0, 6, 2, 7, 1, 5, 3]
-// };
-
-// const candidates = [0, 1, 2, 3, 4, 5, 6, 7];
-
-// const ballots = {
-//     a: [3, 5, 1, 0, 4, 2],
-//     b: [1, 0, 3, 5, 4, 2],
-//     c: [2, 1, 3, 5, 4, 0],
-//     d: [0, 5, 3, 4, 2, 1],
-//     e: [2, 4, 3, 0, 1, 5],
-//     f: [3, 5, 1, 0, 2, 4],
-//     g: [4, 0, 2, 1, 5, 3]
-// };
-
-// const candidates = [0, 1, 2, 3, 4, 5];
-
-const results = runSchulze(candidates, ballots, 3);
-console.log(results);
+module.exports = runSchulze;

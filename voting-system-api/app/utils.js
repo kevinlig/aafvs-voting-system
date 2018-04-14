@@ -92,5 +92,30 @@ module.exports = {
                 }
             });
         });
+    },
+    readBallots(electionId) {
+        return new Promise((resolve, reject) => {
+            const params = {
+                TableName: process.env.DYNAMO_TABLE,
+                KeyConditions: {
+                    session: {
+                        ComparisonOperator: 'EQ',
+                        AttributeValueList: [electionId]
+                    },
+                    rowType: {
+                        ComparisonOperator: 'BEGINS_WITH',
+                        AttributeValueList: ['vote__']
+                    }
+                }
+            };
+            doc.query(params, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(data.Items);
+                }
+            });
+        });
     }
 };

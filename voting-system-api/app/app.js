@@ -1,6 +1,7 @@
 const createSession = require('./create.js');
 const showSession = require('./show.js');
 const castVote = require('./vote.js');
+const closeSession = require('./close.js');
 
 const app = (request, callback) => {
     switch (request.route) {
@@ -13,6 +14,8 @@ const app = (request, callback) => {
         case '/election/{electionId}/vote':
             castVote(request.params.electionId, request.body, callback);
             break;
+        case '/election/{electionId}/close':
+            closeSession(request.params.electionId, request.body, callback);
         default:
             callback(
                 null,

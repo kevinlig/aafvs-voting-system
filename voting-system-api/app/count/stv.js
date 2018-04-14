@@ -201,13 +201,14 @@ function countVotes(ballots, quota, rvh, remaining = 0) {
     }
     else if (unfilledSeats < 0) {
         // something went wrong and we picked too many (most likely due to ties)
-        // just slice to the difference
+        // just slice to the difference (but sort by descending vote count)
+        const winningSlice = winners.sort((a, b) => candidateCounts[b] - candidateCounts[a]).slice(0, remaining);
         return {
-            winners: winners.slice(0, remaining),
+            winners: winningSlice,
             audit: [{
                 event: 'transferWin',
                 counts: Object.assign({}, candidateCounts),
-                winners: winners.slice(0, remaining),
+                winners: winningSlice,
                 eliminated: [],
                 transfer: {},
                 usedRVH: false
