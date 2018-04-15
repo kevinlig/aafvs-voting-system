@@ -80,7 +80,7 @@ export default class Schulze extends React.Component {
                     Pairwise Matrix
                 </h4>
                 <p className="aafvs-audit__paragraph">
-                    Every possible pair of ballot item matches are calculated and run against each other based on voter preferences.
+                    Every possible pair of ballot item matches are calculated and run against each other based on voter preferences. Matches highlighted in green indicate &quot;winning matches&quot; &mdash; when given two specific items, more voters preferred the first item over the second than the second item over the first.
                 </p>
                 <PairwiseMatrix
                     options={this.state.codes}

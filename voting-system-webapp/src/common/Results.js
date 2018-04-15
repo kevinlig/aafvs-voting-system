@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Audit from './audit/Audit';
+import Ballots from './ballots/Ballots';
 
 import './Results.css';
 
@@ -29,6 +30,8 @@ export default class Results extends React.Component {
                     {items}
                 </ol>
                 <Audit
+                    {...this.props} />
+                <Ballots
                     {...this.props} />
             </div>
         );
