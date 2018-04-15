@@ -6,7 +6,8 @@ export const initialState = {
         active: false,
         title: '',
         count: 0,
-        options: []
+        options: [],
+        results: {}
     },
     ballotOrder: [],
     voterStatus: {
@@ -36,6 +37,13 @@ export default function appReducer(state = initialState, action) {
                     submitted: true,
                     id: action.id
                 }
+            });
+        case VoteActions.setElectionResults:
+            return Object.assign({}, state, {
+                election: Object.assign({}, state.election, {
+                    active: false,
+                    results: action.results
+                })
             });
         default:
             return state;

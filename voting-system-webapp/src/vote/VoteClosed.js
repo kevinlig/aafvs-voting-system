@@ -5,7 +5,7 @@ const VoteClosed = (props) => (
     <div className="aafvs-vote">
         <h2
             className="aafvs-vote__title">
-            {this.props.election.title}
+            {props.title}
         </h2>
         <div className="aafvs-vote__content">
             <p className="aafvs-vote__instructions">

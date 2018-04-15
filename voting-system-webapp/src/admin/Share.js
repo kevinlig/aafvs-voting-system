@@ -6,6 +6,10 @@ const Share = (props) => {
     const currentUrl = window.location.href;
     const rootUrl = currentUrl.substring(0, currentUrl.indexOf('#'));
 
+    const clickedClose = () => {
+        props.closeElection(props.election.id);
+    }
+
     return (
         <div className="aafvs-admin__share">
             Share this link with your participants:<br />
@@ -21,7 +25,9 @@ const Share = (props) => {
                     Click the button to stop accepting votes and to count the results.
                 </p>
                 <button
-                    className="aafvs-admin__close-button">
+                    className="aafvs-admin__close-button"
+                    onClick={clickedClose}
+                    disabled={props.closeInFlight}>
                     End Voting
                 </button>
             </div>

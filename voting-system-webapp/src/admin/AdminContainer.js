@@ -13,8 +13,11 @@ export class AdminContainer extends React.Component {
         super(props);
 
         this.state = {
-            inFlight: false
+            inFlight: false,
+            closeInFlight: false
         };
+
+        this.closeElection = this.closeElection.bind(this);
     }
 
     componentDidMount() {
@@ -53,6 +56,35 @@ export class AdminContainer extends React.Component {
         });
     }
 
+    closeElection(id) {
+        this.setState({
+            closeInFlight: true
+        });
+
+        Axios.request({
+            url: `/election/${id}/close`,
+            method: 'post',
+            data: {
+                id: id
+            }
+        })
+        .then((res) => {
+            this.props.setElectionResults(res.data);
+            this.setState({
+                closeInFlight: false
+            });
+        })
+        .catch((err) => {
+            if (err.response) {
+                this.parseElection(err.response);
+            }
+            console.log(err);
+            this.setState({
+                closeInFlight: false
+            });
+        });
+    }
+
     parseElection(data) {
         this.props.setElection(data);
     }
@@ -69,7 +101,9 @@ export class AdminContainer extends React.Component {
         }
         return (
             <AdminPage
-                {...this.props} />
+                {...this.props}
+                closeElection={this.closeElection}
+                closeInFlight={this.state.closeInFlight} />
         );
     }
 }

@@ -1,0 +1,49 @@
+.aafvs-audit {
+    font-size: 14px;
+}
+
+.aafvs-audit__title {
+    font-size: 16px;
+    line-height: 1.3;
+    margin: 0;
+    margin-bottom: 10px;
+    padding: 0;
+}
+
+.aafvs-audit__subtitle {
+    font-size: 14px;
+    line-height: 1.3;
+    margin: 0;
+    margin-bottom: 10px;
+    padding: 0;
+}
+
+.aafvs-audit__paragraph {
+    margin-top: 10px;
+}
+
+.aafvs-audit__pairwise {
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+.aafvs-audit__pairwise th {
+    background-color: #e0e0e0;
+    padding: 5px 10px;
+    text-align: center;
+    border: 1px solid #313131;
+}
+
+.aafvs-audit__pairwise td {
+    padding: 5px 10px;
+    text-align: center;
+    border: 1px solid #313131;
+}
+
+.aafvs-audit__win {
+    background-color: #0cac78;
+}
+
+.aafvs-audit__lose {
+    background-color: #ff625c;
+}

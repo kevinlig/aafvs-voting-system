@@ -1,6 +1,8 @@
 import React from 'react';
 import Share from './Share';
 
+import Results from '../common/Results';
+
 import './AdminPage.css';
 
 export default class AdminPage extends React.Component {
@@ -10,7 +12,19 @@ export default class AdminPage extends React.Component {
         let results = null;
         if (this.props.election.active) {
             share = (
-                <Share election={this.props.election} />
+                <Share
+                    election={this.props.election}
+                    closeElection={this.props.closeElection}
+                    closeInFlight={this.props.closeInFlight} />
+            );
+        }
+        else {
+            results = (
+                <Results
+                    {...this.props.election.results}
+                    id={this.props.election.id}
+                    count={this.props.election.count}
+                    options={this.props.election.options} />
             );
         }
 

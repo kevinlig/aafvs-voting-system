@@ -28,6 +28,8 @@ const closeSessionAPI = (electionId, requestData, callback) => {
     // get the voting session to see if it exists
     let candidates = [];
     let winCount = 0;
+    let response = {};
+    let sessionData = {};
     utils.readSessionData(electionId)
         .then((res) => {
             if (res.length > 0) {
@@ -40,11 +42,9 @@ const closeSessionAPI = (electionId, requestData, callback) => {
                     });
                 }
 
-                // return updateSession(electionId, Object.assign({}, res[0].data, {
-                //     open: false
-                // }));
                 candidates = res[0].data.options;
                 winCount = res[0].data.count;
+                sessionData = res[0].data;
                 return getAllVotes(electionId);
             }
             else {
@@ -74,16 +74,29 @@ const closeSessionAPI = (electionId, requestData, callback) => {
             // perform the Schulze vote count
             const schulze = runSchulze(candidateIndices, ballots, winCount);
 
-            callback(null, utils.response({
+            // use Schulze if possible, but switch to STV if more than 4 ties or insufficient results
+            let method = 'schulze';
+            let results = schulze;
+            if (schulze.winners.length < winCount || schulze.ties > 4) {
+                method = 'stv';
+                results = stv;
+            }
+
+            response = {
+                method: method,
+                results: results,
                 ballots: ballots,
-                results: schulze
+            };
+
+            // update the database with the result and close the session
+            return updateSession(electionId, Object.assign({}, sessionData, {
+                open: false,
+                results: response
             }));
         })
-        // .then((res) => {
-        //     callback(null, utils.response({
-        //         status: 'success'
-        //     }));
-        // })
+        .then(() => {
+            callback(null, utils.response(response));
+        })
         .catch((err) => {
             if (err.response) {
                 callback(null, err.response);

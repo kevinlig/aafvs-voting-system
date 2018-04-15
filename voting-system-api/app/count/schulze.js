@@ -1,3 +1,5 @@
+const objectvalues = require('object.values');
+
 function convertBallot(arr) {
     // convert the array into an object where the voted index is the key and the preference is the value
     return arr.reduce((parsed, item, index) => {
@@ -192,9 +194,9 @@ function traverseIndirectComparisons(ranks, currentKey, sum, visited = []) {
     }, sum);
 }
 
-function calculateRanking(strength) {
+function calculateRanking(strength, rvh) {
     // iterate through each pairing
-    const ranks = Object.values(strength).reduce((output, item) => {
+    const ranks = objectvalues(strength).reduce((output, item) => {
          // get the sum of the strengths for each direct comparison
         let updatedSum = 0;
         let indirectNodes = [];
@@ -226,18 +228,51 @@ function calculateRanking(strength) {
     // now that we have the base direct comparison strengths for each ballot item, we can get the indirect
     // comparison strengths by traversing the indirect array through to either a cycle or end and summing
     // the direct strengths of each node we pass through
-    Object.values(ranks).forEach((item) => {
+    objectvalues(ranks).forEach((item) => {
         item.total = item.direct + traverseIndirectComparisons(ranks, item.item, 0, [item.item]);
     });
 
     // finally, order the results
-    const output = Object.values(ranks).map((rank) => ({
+    const output = objectvalues(ranks).map((rank) => ({
         candidate: rank.item,
         value: rank.total
     }));
 
-    // TODO: fix this to resolve ties
-    return output.sort((rank1, rank2) => rank1.value - rank2.value).reverse()
+    const sortedRanks = output.sort((rank1, rank2) => rank1.value - rank2.value).reverse();
+    const tieredRanks = sortedRanks.reduce((output, rank) => {
+        if (output.length === 0) {
+            output.push([rank]);
+            return output;
+        }
+
+        const prevRank = output[output.length - 1];
+        const prevValue = prevRank[0].value;
+        if (rank.value === prevValue) {
+            // this is tied with the previous rank, so put it as a sibling
+            output[output.length - 1] = prevRank.concat([rank]);
+            return output;
+        }
+        // otherwise, the rank is different
+        output.push([rank]);
+        return output;
+    }, []);
+
+    // finally, reflatten the tiers and sort ties by RVH
+    let ties = 0;
+    const flattenedRanks = tieredRanks.reduce((output, tier) => {
+        if (tier.length === 1) {
+            // no ties
+            return output.concat(tier);
+        }
+        // otherwise, sort by RVH
+        const sortedTier = tier.sort((a, b) => rvh.ballot[a.candidate] - rvh.ballot[b.candidate]);
+        ties += tier.length;
+        return output.concat(sortedTier);
+    }, []);
+    return {
+        ranks: flattenedRanks,
+        ties: ties
+    }
 }
 
 function runSchulze(rawCandidates, ballots, winCount) {
@@ -250,21 +285,24 @@ function runSchulze(rawCandidates, ballots, winCount) {
 
     // calculate pairwise matrix
     const matrix = calculatePairMatrix(pairs, election.votes);
-    audit.pairwise = Object.values(matrix);
+    audit.pairwise = objectvalues(matrix);
     
     // determine the strongest paths between every matrix point
     const strengthMatrix = calculateMatrixStrength(matrix, candidates);
-    audit.strongestPaths = Object.values(strengthMatrix);
+    audit.strongestPaths = objectvalues(strengthMatrix);
 
-    const ranking = calculateRanking(strengthMatrix);
-    audit.ranking = ranking;
+    const results = calculateRanking(strengthMatrix, election.rvh);
+    audit.ranking = results.ranks;
 
-    let winners = ranking;
-    if (ranking.length > winCount) {
-        winners = ranking.slice(0, winCount);
+
+    let winners = results.ranks;
+    if (results.ranks.length > winCount) {
+        winners = results.ranks.slice(0, winCount);
     }
     return {
         winners: winners.map((item) => item.candidate),
+        ties: results.ties,
+        rvh: election.rvh,
         audit: audit
     };
 };

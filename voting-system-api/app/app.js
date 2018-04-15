@@ -16,6 +16,7 @@ const app = (request, callback) => {
             break;
         case '/election/{electionId}/close':
             closeSession(request.params.electionId, request.body, callback);
+            break;
         default:
             callback(
                 null,

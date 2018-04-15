@@ -1,7 +1,9 @@
+const objectvalues = require('object.values');
+
 function prepareBallots(raw) {
     // we need to convert each ballot into an array of objects with the candidate and vote value
     // this is to handle subsequent rounds when the vote surplus will allow partial votes
-    return Object.values(raw).map((ballot) => (
+    return objectvalues(raw).map((ballot) => (
         ballot.map((candidate) => ({
             candidate: String(candidate),
             vote: 1
@@ -31,7 +33,7 @@ function firstChoices(ballots) {
 }
 
 function findLowest(counts, rvh) {
-    const lowestCount = Math.min(...Object.values(counts));
+    const lowestCount = Math.min(...objectvalues(counts));
     const lowestCandidates = Object.keys(counts).filter((candidate) => counts[candidate] === lowestCount);
     if (lowestCandidates.length ===  1) {
         return {
