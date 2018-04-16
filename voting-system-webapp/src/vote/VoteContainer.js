@@ -9,6 +9,7 @@ import { actions as voteActions } from '../redux/actions/voteActions';
 import AdminNotFound from '../admin/AdminNotFound';
 import VotePage from './VotePage';
 import VoteClosed from './VoteClosed';
+import VoteSubmitted from './VoteSubmitted';
 
 class VoteContainer extends React.Component {
     constructor(props) {
@@ -129,7 +130,11 @@ class VoteContainer extends React.Component {
             );
         }
         else if (this.props.voterStatus.submitted) {
-            return `Voted! You are ${this.props.voterStatus.id.substring(this.props.voterStatus.id.length - 5)}`;
+            return (
+                <VoteSubmitted
+                    title={this.props.election.title}
+                    voterId={this.props.voterStatus.id} />
+            );
         }
         return (
             <VotePage

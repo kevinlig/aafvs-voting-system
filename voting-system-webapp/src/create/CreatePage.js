@@ -86,7 +86,7 @@ export default class CreatePage extends React.Component {
         if (!this.state.title) {
             return false;
         }
-        if (!this.state.count || this.state.count < 1 || this.state.count > this.state.options.length) {
+        if (!this.state.count || this.state.count < 1 || this.state.count > (this.state.options.length - 1)) {
             return false;
         }
         if (this.state.options.length === 0) {
