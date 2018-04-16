@@ -22,19 +22,19 @@
     margin-top: 10px;
 }
 
-.aafvs-audit__pairwise {
+.aafvs-audit__table {
     border-spacing: 0;
     border-collapse: collapse;
 }
 
-.aafvs-audit__pairwise th {
+.aafvs-audit__table th {
     background-color: #e0e0e0;
     padding: 5px 10px;
     text-align: center;
     border: 1px solid #313131;
 }
 
-.aafvs-audit__pairwise td {
+.aafvs-audit__table td {
     padding: 5px 10px;
     text-align: center;
     border: 1px solid #313131;
@@ -46,4 +46,8 @@
 
 .aafvs-audit__lose {
     background-color: #ff625c;
+}
+
+.aafvs-audit__hide {
+    display: none;
 }

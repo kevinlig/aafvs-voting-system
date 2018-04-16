@@ -20,6 +20,7 @@ const buildGraph = (data, codes) => {
     }, []);
     return window.Viz(`
         digraph {
+            bgcolor=transparent
             ${nodes.join('\n')}
         }
     `);

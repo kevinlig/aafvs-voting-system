@@ -124,7 +124,8 @@ class VoteContainer extends React.Component {
             // voting is closed
             return (
                 <VoteClosed
-                    title={this.props.election.title} />
+                    title={this.props.election.title}
+                    election={this.props.election} />
             );
         }
         else if (this.props.voterStatus.submitted) {

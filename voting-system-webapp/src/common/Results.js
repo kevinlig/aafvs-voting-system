@@ -29,10 +29,13 @@ export default class Results extends React.Component {
                     className="aafvs-results__list">
                     {items}
                 </ol>
-                <Audit
-                    {...this.props} />
-                <Ballots
-                    {...this.props} />
+                <div
+                    className="aafvs-results__audit-wrap">
+                    <Audit
+                        {...this.props} />
+                    <Ballots
+                        {...this.props} />
+                </div>
             </div>
         );
     }

@@ -52,7 +52,7 @@ const PairwiseMatrix = (props) => {
 
     return (
         <table
-            className="aafvs-audit__pairwise">
+            className="aafvs-audit__table">
             <thead>
                 <tr>
                     <td />
